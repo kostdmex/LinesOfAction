@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LinesOfAction</string>
+    <string name="exit">Exit</string>
+    <string name="title">Lines of Action</string>
+    <string name="play_game">Play Game</string>
+    <string name="about">About</string>
+    <string name="text_about">
+        Strategy board game for two players. \n The objective is to connect all of one\'s pieces into a single group. \n
+        Made by Kamil Ostrowski.
+    </string>
+    <string name="settings_button">Settings</string>
+</resources>
