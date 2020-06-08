@@ -14,10 +14,10 @@ object BitSetInterface {
     }
 
     fun getByXYBoard(x: Int, y: Int, bitSet: BitSet): Boolean {
-        if (x in startBoard..endBoard && y in startBoard..endBoard) {
-            return bitSet.get(y * 8 + x)
+        return if (x in startBoard..endBoard && y in startBoard..endBoard) {
+            bitSet.get(y * 8 + x)
         } else {
-            return false
+            false
         }
     }
 
@@ -31,15 +31,10 @@ object BitSetInterface {
         Fourth index: Pieces in diagonal direction on the upper right and bottom left side from the point. */
         val numbersOfPiecesInDirections = countPiecesInDirections(x, y, firstPlayerBoard, secondPlayerBoard)
 
-        val upDownDirection = numbersOfPiecesInDirections[0]
-        val rightLeftDirection = numbersOfPiecesInDirections[1]
-        val leftUpDirection = numbersOfPiecesInDirections[2]
-        val rightUpDirection = numbersOfPiecesInDirections[3]
-
-        addMovesFromPosition(x, y, 0, upDownDirection, firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, rightLeftDirection, 0, firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, leftUpDirection, leftUpDirection, firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, rightUpDirection, -rightUpDirection, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, 0, numbersOfPiecesInDirections[0], firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, numbersOfPiecesInDirections[1], 0, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, numbersOfPiecesInDirections[2], numbersOfPiecesInDirections[2], firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, numbersOfPiecesInDirections[3], -numbersOfPiecesInDirections[3], firstPlayerBoard, secondPlayerBoard, moves)
         return moves
     }
 
