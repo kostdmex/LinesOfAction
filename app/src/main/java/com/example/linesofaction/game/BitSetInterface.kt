@@ -29,12 +29,12 @@ object BitSetInterface {
         Second index: Pieces on the left and right from point.
         Third index: Pieces in diagonal direction on the upper left and bottom right side from the point.
         Fourth index: Pieces in diagonal direction on the upper right and bottom left side from the point. */
-        val numbersOfPiecesInDirections = countPiecesInDirections(x, y, firstPlayerBoard, secondPlayerBoard)
+        val piecesInDirections = countPiecesInDirections(x, y, firstPlayerBoard, secondPlayerBoard)
 
-        addMovesFromPosition(x, y, 0, numbersOfPiecesInDirections[0], firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, numbersOfPiecesInDirections[1], 0, firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, numbersOfPiecesInDirections[2], numbersOfPiecesInDirections[2], firstPlayerBoard, secondPlayerBoard, moves)
-        addMovesFromPosition(x, y, numbersOfPiecesInDirections[3], -numbersOfPiecesInDirections[3], firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, 0, piecesInDirections[0], firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, piecesInDirections[1], 0, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, piecesInDirections[2], piecesInDirections[2], firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, piecesInDirections[3], -piecesInDirections[3], firstPlayerBoard, secondPlayerBoard, moves)
         return moves
     }
 
