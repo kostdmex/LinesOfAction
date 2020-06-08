@@ -36,22 +36,10 @@ object BitSetInterface {
         val leftUpDirection = numbersOfPiecesInDirections[2]
         val rightUpDirection = numbersOfPiecesInDirections[3]
 
-        if (validPositionStraight(x, y, x, y + upDownDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x, y + upDownDirection))
-        if (validPositionStraight(x, y, x, y - upDownDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x, y - upDownDirection))
-        if (validPositionStraight(x, y, x + rightLeftDirection, y, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x + rightLeftDirection, y))
-        if (validPositionStraight(x, y, x - rightLeftDirection, y, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x - rightLeftDirection, y))
-        if (validPositionDiagonal(x, y, x + rightUpDirection, y - rightUpDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x + rightUpDirection, y - rightUpDirection))
-        if (validPositionDiagonal(x, y, x - rightUpDirection, y + rightUpDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x - rightUpDirection, y + rightUpDirection))
-        if (validPositionDiagonal(x, y, x + leftUpDirection, y + leftUpDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x + leftUpDirection, y + leftUpDirection))
-        if (validPositionDiagonal(x, y, x - leftUpDirection, y - leftUpDirection, firstPlayerBoard, secondPlayerBoard))
-            moves.add(Point(x - leftUpDirection, y - leftUpDirection))
+        addMovesFromPosition(x, y, 0, upDownDirection, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, rightLeftDirection, 0, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, leftUpDirection, leftUpDirection, firstPlayerBoard, secondPlayerBoard, moves)
+        addMovesFromPosition(x, y, rightUpDirection, -rightUpDirection, firstPlayerBoard, secondPlayerBoard, moves)
         return moves
     }
 
@@ -92,7 +80,26 @@ object BitSetInterface {
         }
         return arrayOf(upDownDirection, rightLeftDirection, leftUpDirection, rightUpDirection)
     }
-
+    private fun addMovesFromPosition(startX: Int, startY: Int, diffX: Int, diffY: Int,  firstPlayerBoard : BitSet, secondPlayerBoard : BitSet, moves : ArrayList<Point>){
+        if(diffX!=0&&diffY!=0){
+            if(validPositionDiagonal(startX, startY, startX+diffX, startY+diffY,firstPlayerBoard,secondPlayerBoard))
+                moves.add(Point(startX+diffX,startY+diffY))
+            if(validPositionDiagonal(startX, startY, startX-diffX, startY-diffY,firstPlayerBoard,secondPlayerBoard))
+                moves.add(Point(startX-diffX,startY-diffY))
+        } else {
+            if(diffY==0){
+                if (validPositionStraight(startX, startY, startX + diffX, startY, firstPlayerBoard, secondPlayerBoard))
+                    moves.add(Point(startX + diffX, startY))
+                if (validPositionStraight(startX, startY, startX - diffX, startY, firstPlayerBoard, secondPlayerBoard))
+                    moves.add(Point(startX - diffX, startY))
+            } else {
+                if (validPositionStraight(startX, startY, startX, startY + diffY, firstPlayerBoard, secondPlayerBoard))
+                    moves.add(Point(startX, startY + diffY))
+                if (validPositionStraight(startX, startY, startX, startY - diffY, firstPlayerBoard, secondPlayerBoard))
+                    moves.add(Point(startX, startY - diffY))
+            }
+        }
+    }
     private fun validPositionStraight(startX: Int, startY: Int, endX: Int, endY: Int,  firstPlayerBoard : BitSet, secondPlayerBoard : BitSet): Boolean {
         if (endX !in startBoard..endBoard || endY !in startBoard..endBoard) return false
         if (isAlly(endX, endY, startX, startY,  firstPlayerBoard, secondPlayerBoard)) return false
