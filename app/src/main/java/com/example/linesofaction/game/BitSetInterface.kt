@@ -23,11 +23,19 @@ object BitSetInterface {
 
     fun getMovesFromXY(x: Int, y: Int, firstPlayerBoard : BitSet, secondPlayerBoard : BitSet): ArrayList<Point> {
         val moves = ArrayList<Point>()
-        val array = countPiecesInDirections(x, y, firstPlayerBoard, secondPlayerBoard)
-        val rightUpDirection = array[3]
-        val upDownDirection = array[0]
-        val leftUpDirection = array[2]
-        val rightLeftDirection = array[1]
+
+        /* Method returns array with indexes. Those indexes contains number of pieces in unique directions.
+        First index: Pieces below and above from point.
+        Second index: Pieces on the left and right from point.
+        Third index: Pieces in diagonal direction on the upper left and bottom right side from the point.
+        Fourth index: Pieces in diagonal direction on the upper right and bottom left side from the point. */
+        val numbersOfPiecesInDirections = countPiecesInDirections(x, y, firstPlayerBoard, secondPlayerBoard)
+
+        val upDownDirection = numbersOfPiecesInDirections[0]
+        val rightLeftDirection = numbersOfPiecesInDirections[1]
+        val leftUpDirection = numbersOfPiecesInDirections[2]
+        val rightUpDirection = numbersOfPiecesInDirections[3]
+
         if (validPositionStraight(x, y, x, y + upDownDirection, firstPlayerBoard, secondPlayerBoard))
             moves.add(Point(x, y + upDownDirection))
         if (validPositionStraight(x, y, x, y - upDownDirection, firstPlayerBoard, secondPlayerBoard))
