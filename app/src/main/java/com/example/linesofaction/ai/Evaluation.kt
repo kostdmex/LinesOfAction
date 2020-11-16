@@ -22,6 +22,9 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
     private var weightWalls = 18F
     private var weightCentreOfMass = 10F
     private var weightPlayerToMove = 5F
+    private val THOUSAND = 1000
+    private val TEN = 10
+    private val FIVE = 5
 
     private val pieceSquareTable = intArrayOf(
         -80, -25, -20, -20, -20, -20, -25, -80,
@@ -73,7 +76,7 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
         }
         val sumOfMinDistances = calculateSumOfminDistances(com, bitSet.cardinality() - 1)
         val surplusOfDistances = sumOfDistances - sumOfMinDistances
-        return (1 / surplusOfDistances) * 1000
+        return (1.0F / surplusOfDistances)
     }
 
     fun calculateSumOfminDistances(point: Point, size: Int): Int {
@@ -131,7 +134,7 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
                 result += isQuad(x, y, bitSet)
             }
         }
-        return result*10
+        return result
     }
 
     private fun isQuad(x: Int, y: Int, bitSet: BitSet): Float {
@@ -143,17 +146,17 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
         return if (result > 2F) result else 0F
     }
 
-    private fun mobility(friendlyBitSet: BitSet, enemyBitSet: BitSet): Float {
+    private fun mobility(board: Board): Float {
         var value = 0F
         var index = 0
-        for (i in 0 until friendlyBitSet.cardinality()) {
-            index = friendlyBitSet.nextSetBit(index)
+        for (i in 0 until board.playerBoard.cardinality()) {
+            index = board.playerBoard.nextSetBit(index)
             val point = BitSetInterface.fromIndexToPoint(index)
-            val moves = BitSetInterface.getMovesFromXY(point.x, point.y, friendlyBitSet, enemyBitSet)
+            val moves = BitSetInterface.getMovesFromXY(point.x, point.y, board)
             if (moves.size > 0) {
                 for (dst in moves) {
                     var tempValue = 1F
-                    if (BitSetInterface.getByXYBoard(dst.x, dst.y, enemyBitSet)) tempValue *= 2F
+                    if (BitSetInterface.getByXYBoard(dst.x, dst.y, board.opponentBoard)) tempValue *= 2F
                     if (dst.x == 0 || dst.x == 7 || dst.y == 0 || dst.y == 7) {
                         tempValue /= 2F
                         if (point.x == 0 || point.x == 7 || point.y == 0 || point.y == 7) {
@@ -177,7 +180,7 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
             index++
         }
         averageConnectedness /= bitSet.cardinality()
-        return averageConnectedness*5
+        return averageConnectedness
     }
 
     private fun uniformity(bitSet: BitSet): Float {
@@ -222,7 +225,7 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
         }
         area = (calculateDistance(leftUpPoint, rightUpPoint) + calculateDistance(rightUpPoint, rightDownPoint) + calculateDistance(rightDownPoint, leftDownPoint)
                 + calculateDistance(leftDownPoint, leftUpPoint)).toFloat()
-        return 1 / area * 1000
+        return 1.0F / area
     }
 
     private fun calculateDistance(fromPoint: Point, toPoint: Point): Double {
@@ -238,116 +241,114 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
         return if (isPlayerMoving) 10F else 0F
     }
 
-    private fun walls(friendlyBitSet: BitSet, enemyBitSet: BitSet): Float {
+    private fun walls(board: Board): Float {
         var blockedDirections = 0F
-        blockedDirections = calculateWallsInCorner(friendlyBitSet, enemyBitSet)
+        blockedDirections = calculateWallsInCorner(board)
         for (i in 1..6) {
-            if (BitSetInterface.getByXYBoard(i, 0, enemyBitSet)) {
-                if (BitSetInterface.getByXYBoard(i, 1, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(i, 0, board.opponentBoard)) {
+                if (BitSetInterface.getByXYBoard(i, 1, board.playerBoard)) {
                     blockedDirections++
-                    if (BitSetInterface.getByXYBoard(i - 1, 1, friendlyBitSet)) blockedDirections++
-                    if (BitSetInterface.getByXYBoard(i + 1, 1, friendlyBitSet)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(i - 1, 1, board.playerBoard)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(i + 1, 1, board.playerBoard)) blockedDirections++
                 }
             }
-            if (BitSetInterface.getByXYBoard(0, i, enemyBitSet)) {
-                if (BitSetInterface.getByXYBoard(1, i, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(0, i, board.opponentBoard)) {
+                if (BitSetInterface.getByXYBoard(1, i, board.playerBoard)) {
                     blockedDirections++
-                    if (BitSetInterface.getByXYBoard(1, i - 1, friendlyBitSet)) blockedDirections++
-                    if (BitSetInterface.getByXYBoard(1, i + 1, friendlyBitSet)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(1, i - 1, board.playerBoard)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(1, i + 1, board.playerBoard)) blockedDirections++
                 }
             }
-            if (BitSetInterface.getByXYBoard(i, 7, enemyBitSet)) {
-                if (BitSetInterface.getByXYBoard(i, 6, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(i, 7, board.opponentBoard)) {
+                if (BitSetInterface.getByXYBoard(i, 6, board.playerBoard)) {
                     blockedDirections++
-                    if (BitSetInterface.getByXYBoard(i - 1, 6, friendlyBitSet)) blockedDirections++
-                    if (BitSetInterface.getByXYBoard(i + 1, 6, friendlyBitSet)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(i - 1, 6, board.playerBoard)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(i + 1, 6, board.playerBoard)) blockedDirections++
                 }
             }
-            if (BitSetInterface.getByXYBoard(7, i, enemyBitSet)) {
-                if (BitSetInterface.getByXYBoard(6, i, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(7, i, board.opponentBoard)) {
+                if (BitSetInterface.getByXYBoard(6, i, board.playerBoard)) {
                     blockedDirections++
-                    if (BitSetInterface.getByXYBoard(6, i - 1, friendlyBitSet)) blockedDirections++
-                    if (BitSetInterface.getByXYBoard(6, i + 1, friendlyBitSet)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(6, i - 1, board.playerBoard)) blockedDirections++
+                    if (BitSetInterface.getByXYBoard(6, i + 1, board.playerBoard)) blockedDirections++
                 }
             }
         }
-        return blockedDirections*10
+        return blockedDirections
     }
 
-    private fun calculateWallsInCorner(friendlyBitSet: BitSet, enemyBitSet: BitSet): Float {
+    private fun calculateWallsInCorner(board: Board): Float {
         var blockedDirections = 0F
-        if (BitSetInterface.getByXYBoard(0, 0, enemyBitSet)) {
-            if (BitSetInterface.getByXYBoard(1, 0, friendlyBitSet) && BitSetInterface.getByXYBoard(1, 1, friendlyBitSet)) {
+        if (BitSetInterface.getByXYBoard(0, 0, board.opponentBoard)) {
+            if (BitSetInterface.getByXYBoard(1, 0, board.playerBoard) && BitSetInterface.getByXYBoard(1, 1, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(1, 0, friendlyBitSet) || BitSetInterface.getByXYBoard(1, 1, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(1, 0, board.playerBoard) || BitSetInterface.getByXYBoard(1, 1, board.playerBoard)) {
                 blockedDirections += 2F
             }
-            if (BitSetInterface.getByXYBoard(0, 1, friendlyBitSet) && BitSetInterface.getByXYBoard(1, 1, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(0, 1, board.playerBoard) && BitSetInterface.getByXYBoard(1, 1, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(0, 1, friendlyBitSet) || BitSetInterface.getByXYBoard(1, 1, friendlyBitSet)) {
-                blockedDirections += 2F
-            }
-        }
-        if (BitSetInterface.getByXYBoard(0, 7, enemyBitSet)) {
-            if (BitSetInterface.getByXYBoard(0, 6, friendlyBitSet) && BitSetInterface.getByXYBoard(1, 6, friendlyBitSet)) {
-                blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(0, 6, friendlyBitSet) || BitSetInterface.getByXYBoard(1, 6, friendlyBitSet)) {
-                blockedDirections += 2F
-            }
-            if (BitSetInterface.getByXYBoard(1, 7, friendlyBitSet) && BitSetInterface.getByXYBoard(1, 6, friendlyBitSet)) {
-                blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(1, 7, friendlyBitSet) || BitSetInterface.getByXYBoard(1, 6, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(0, 1, board.playerBoard) || BitSetInterface.getByXYBoard(1, 1, board.playerBoard)) {
                 blockedDirections += 2F
             }
         }
-        if (BitSetInterface.getByXYBoard(7, 7, enemyBitSet)) {
-            if (BitSetInterface.getByXYBoard(6, 7, friendlyBitSet) && BitSetInterface.getByXYBoard(6, 6, friendlyBitSet)) {
+        if (BitSetInterface.getByXYBoard(0, 7, board.opponentBoard)) {
+            if (BitSetInterface.getByXYBoard(0, 6, board.playerBoard) && BitSetInterface.getByXYBoard(1, 6, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(6, 7, friendlyBitSet) || BitSetInterface.getByXYBoard(6, 6, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(0, 6, board.playerBoard) || BitSetInterface.getByXYBoard(1, 6, board.playerBoard)) {
                 blockedDirections += 2F
             }
-            if (BitSetInterface.getByXYBoard(7, 6, friendlyBitSet) && BitSetInterface.getByXYBoard(6, 6, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(1, 7, board.playerBoard) && BitSetInterface.getByXYBoard(1, 6, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(7, 6, friendlyBitSet) || BitSetInterface.getByXYBoard(6, 6, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(1, 7, board.playerBoard) || BitSetInterface.getByXYBoard(1, 6, board.playerBoard)) {
                 blockedDirections += 2F
             }
         }
-        if (BitSetInterface.getByXYBoard(7, 0, enemyBitSet)) {
-            if (BitSetInterface.getByXYBoard(7, 1, friendlyBitSet) && BitSetInterface.getByXYBoard(6, 1, friendlyBitSet)) {
+        if (BitSetInterface.getByXYBoard(7, 7, board.opponentBoard)) {
+            if (BitSetInterface.getByXYBoard(6, 7, board.playerBoard) && BitSetInterface.getByXYBoard(6, 6, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(7, 1, friendlyBitSet) || BitSetInterface.getByXYBoard(6, 1, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(6, 7, board.playerBoard) || BitSetInterface.getByXYBoard(6, 6, board.playerBoard)) {
                 blockedDirections += 2F
             }
-            if (BitSetInterface.getByXYBoard(6, 0, friendlyBitSet) && BitSetInterface.getByXYBoard(6, 1, friendlyBitSet)) {
+            if (BitSetInterface.getByXYBoard(7, 6, board.playerBoard) && BitSetInterface.getByXYBoard(6, 6, board.playerBoard)) {
                 blockedDirections += 3F
-            } else if (BitSetInterface.getByXYBoard(6, 0, friendlyBitSet) || BitSetInterface.getByXYBoard(6, 1, friendlyBitSet)) {
+            } else if (BitSetInterface.getByXYBoard(7, 6, board.playerBoard) || BitSetInterface.getByXYBoard(6, 6, board.playerBoard)) {
+                blockedDirections += 2F
+            }
+        }
+        if (BitSetInterface.getByXYBoard(7, 0, board.opponentBoard)) {
+            if (BitSetInterface.getByXYBoard(7, 1, board.playerBoard) && BitSetInterface.getByXYBoard(6, 1, board.playerBoard)) {
+                blockedDirections += 3F
+            } else if (BitSetInterface.getByXYBoard(7, 1, board.playerBoard) || BitSetInterface.getByXYBoard(6, 1, board.playerBoard)) {
+                blockedDirections += 2F
+            }
+            if (BitSetInterface.getByXYBoard(6, 0, board.playerBoard) && BitSetInterface.getByXYBoard(6, 1, board.playerBoard)) {
+                blockedDirections += 3F
+            } else if (BitSetInterface.getByXYBoard(6, 0, board.playerBoard) || BitSetInterface.getByXYBoard(6, 1, board.playerBoard)) {
                 blockedDirections += 2F
             }
         }
         return blockedDirections
     }
 
-    @Suppress("NAME_SHADOWING")
-    private fun minimaxWithPrunning(friendlyBitSet: BitSet, enemyBitSet: BitSet, node: Point, move: Point, depth: Int, alpha: Float, beta: Float, maximizingPlayer: Boolean): Float {
+    private fun minimaxWithPrunning(board : Board, node: Point, move: Point, depth: Int, alpha: Float, beta: Float, maximizingPlayer: Boolean): Float {
         var alpha = alpha
         var beta = beta
-        if (depth == 0 || BitSetInterface.checkIfGameWon(friendlyBitSet, enemyBitSet) != 0) {
-            return evaluateMove(maximizingPlayer, friendlyBitSet, enemyBitSet)
+        if (depth == 0 || BitSetInterface.checkIfGameWon(board) != 0) {
+            if(maximizingPlayer) return evaluateMove(maximizingPlayer, board)
+            return evaluateMove(maximizingPlayer, board.reverseSides())
         }
         var index = 0
         if (maximizingPlayer) {
             var maxValue = Float.NEGATIVE_INFINITY
-            for (i in 0 until friendlyBitSet.cardinality()) {
-                index = friendlyBitSet.nextSetBit(index)
+            for (i in 0 until board.playerBoard.cardinality()) {
+                index = board.playerBoard.nextSetBit(index)
                 val root = BitSetInterface.fromIndexToPoint(index)
-                val moves = BitSetInterface.getMovesFromXY(root.x, root.y, friendlyBitSet, enemyBitSet)
-                if (moves.size == 0) return evaluateMove(maximizingPlayer, friendlyBitSet, enemyBitSet)
+                val moves = BitSetInterface.getMovesFromXY(root.x, root.y, board)
+                if (moves.size == 0) continue;
                 for (point in moves) {
-                    val tempFriendlyBitSet = friendlyBitSet.clone() as BitSet
-                    val tempEnemyBitSet = enemyBitSet.clone() as BitSet
-                    BitSetInterface.movePiece(root.x, root.y, point.x, point.y, tempFriendlyBitSet, tempEnemyBitSet)
-                    //cacheFriendlySituation = Float.NaN
-                    val value = minimaxWithPrunning(tempFriendlyBitSet, tempEnemyBitSet, Point(), Point(), depth - 1, alpha, beta, false)
+                    val tempBoard = Board(board)
+                    BitSetInterface.movePiece(root.x, root.y, point.x, point.y, tempBoard)
+                    val value = minimaxWithPrunning(tempBoard.reverseSides(), Point(), Point(), depth - 1, alpha, beta, false)
                     if (value > maxValue) {
                         maxValue = value
                         node.set(root.x, root.y)
@@ -360,19 +361,16 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
             }
             return maxValue
         }
-
         var minValue = Float.POSITIVE_INFINITY
-        for (i in 0 until enemyBitSet.cardinality()) {
-            index = enemyBitSet.nextSetBit(index)
+        for (i in 0 until board.opponentBoard.cardinality()) {
+            index = board.opponentBoard.nextSetBit(index)
             val root = BitSetInterface.fromIndexToPoint(index)
-            val moves = BitSetInterface.getMovesFromXY(root.x, root.y, enemyBitSet, friendlyBitSet)
-            if (moves.size == 0) return evaluateMove(maximizingPlayer, friendlyBitSet, enemyBitSet)
+            val moves = BitSetInterface.getMovesFromXY(root.x, root.y, board)
+            if (moves.size == 0) continue;
             for (point in moves) {
-                val tempFriendlyBitSet = friendlyBitSet.clone() as BitSet
-                val tempEnemyBitSet = enemyBitSet.clone() as BitSet
-                BitSetInterface.movePiece(root.x, root.y, point.x, point.y, tempEnemyBitSet, tempFriendlyBitSet)
-                //cacheEnemySituation = Float.NaN
-                val value = minimaxWithPrunning(tempFriendlyBitSet, tempEnemyBitSet, Point(), Point(), depth - 1, alpha, beta, true)
+                val tempBoard = Board(board)
+                BitSetInterface.movePiece(root.x, root.y, point.x, point.y, tempBoard)
+                val value = minimaxWithPrunning(tempBoard.reverseSides(), Point(), Point(), depth - 1, alpha, beta, true)
                 minValue = min(minValue, value)
                 beta = min(beta, minValue)
                 if (beta <= alpha) break
@@ -380,47 +378,40 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
             index++
         }
         return minValue
-
     }
 
     private fun pickBestMove() {
         synchronized(LinesOfAction.board) {
             board = Board(LinesOfAction.board)
         }
-        lateinit var friendlyBitSet: BitSet
-        lateinit var enemyBitSet: BitSet
-        if (isFirstBoard) {
-            friendlyBitSet = board.firstPlayerBoard
-            enemyBitSet = board.secondPlayerBoard
-        } else {
-            friendlyBitSet = board.secondPlayerBoard
-            enemyBitSet = board.firstPlayerBoard
+        if (!isFirstBoard) {
+            board = board.reverseSides()
         }
         var bestRoot = Point()
         var bestMove = Point()
-        minimaxWithPrunning(friendlyBitSet, enemyBitSet, bestRoot, bestMove, 3, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, true)
+        minimaxWithPrunning(board, bestRoot, bestMove, 3, Float.NEGATIVE_INFINITY, Float.POSITIVE_INFINITY, true)
         LinesOfAction.movePieceByAI(bestRoot, bestMove)
     }
 
-    private fun evaluateMove(isPlayerMoving: Boolean, friendlyBitSet: BitSet, enemyBitSet: BitSet): Float {
-        val friendlyCOM = calculateCentreOfMass(friendlyBitSet)
-        val friendlySituation = evaluateSituation(friendlyCOM, friendlyBitSet)
-        val enemyCOM = calculateCentreOfMass(enemyBitSet)
-        val enemySituation = evaluateSituation(enemyCOM, enemyBitSet)
-        val mobility = weightMobility * mobility(friendlyBitSet, enemyBitSet)
-        val walls = weightWalls * walls(friendlyBitSet, enemyBitSet)
+    private fun evaluateMove(isPlayerMoving: Boolean, board: Board): Float {
+        val friendlyCOM = calculateCentreOfMass(board.playerBoard)
+        val friendlySituation = evaluateSituation(friendlyCOM, board.playerBoard)
+        val enemyCOM = calculateCentreOfMass(board.opponentBoard)
+        val enemySituation = evaluateSituation(enemyCOM, board.opponentBoard)
+        val mobility = weightMobility * mobility(board)
+        val walls = weightWalls * walls(board) * TEN
         val playerToMove = weightPlayerToMove * playerToMove(isPlayerMoving)
-        val random = (Math.random() * 10).toFloat()
+        val random = (Math.random() * TEN).toFloat()
         return (friendlySituation - enemySituation) + mobility + walls + playerToMove + random
     }
 
     private fun evaluateSituation(point: Point, bitSet: BitSet): Float {
-        val concentration = weightConcentration * concentration(point, bitSet)
+        val concentration = weightConcentration * concentration(point, bitSet) * THOUSAND
         val centralisation = weightCentralisation * centralisation(bitSet)
-        val quads = weightQuads * countQuads(bitSet)
+        val quads = weightQuads * countQuads(bitSet) * TEN
         val uniformity = weightUniformity * uniformity(bitSet)
-        val connectedness = weightConnectedness * connectedness(bitSet)
-        val centreOfMass = weightCentreOfMass * evaluateCentreOfMass(point)
+        val connectedness = weightConnectedness * connectedness(bitSet) * FIVE
+        val centreOfMass = weightCentreOfMass * evaluateCentreOfMass(point) * THOUSAND
         return concentration + centralisation + quads + uniformity + connectedness + centreOfMass
     }
 
@@ -429,29 +420,6 @@ class Evaluation(private val paint: Paint, randomWeights: Boolean) {
             if (LinesOfAction.playerTurn == paint) {
                 pickBestMove()
             }
-            /*if (LinesOfAction.wonGameFlag != 0) {
-                if (LinesOfAction.movesCounter < 25) {
-                    if (LinesOfAction.wonGameFlag == 1 && isFirstBoard) {
-                        println(
-                            "WAGI!!!" + weightConcentration + " " + weightCentralisation + " " + weightQuads + " " + weightUniformity + " "
-                                    + weightConnectedness + " " + weightCentreOfMass + " " + weightMobility + " " + weightWalls + " " + weightPlayerToMove + " " + LinesOfAction.movesCounter
-                        )
-                    }
-                    if (LinesOfAction.wonGameFlag == 2 && !isFirstBoard) {
-                        println(
-                            "WAGI!!!" + weightConcentration + " " + weightCentralisation + " " + weightQuads + " " + weightUniformity + " "
-                                    + weightConnectedness + " " + weightCentreOfMass + " " + weightMobility + " " + weightWalls + " " + weightPlayerToMove + " " + LinesOfAction.movesCounter
-                        )
-                    }
-                    stopThread()
-                } else {
-                    randomWeights()
-                    LinesOfAction.getNewGame()
-                }
-            } else if (LinesOfAction.movesCounter > 20) {
-                randomWeights()
-                LinesOfAction.getNewGame()
-            }*/
         }
     }
 

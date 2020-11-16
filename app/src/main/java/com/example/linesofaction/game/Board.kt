@@ -6,18 +6,25 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 class Board() {
-    var firstPlayerBoard = BitSet(64)
-    var secondPlayerBoard = BitSet(64)
+    var playerBoard = BitSet(64)
+    var opponentBoard = BitSet(64)
     var activePoint: Point? = null
     var lastPosition : Point? = null
     var currentPosition : Point? = null
 
     constructor(board : Board) : this() {
-        this.firstPlayerBoard = board.firstPlayerBoard.clone() as BitSet
-        this.secondPlayerBoard = board.secondPlayerBoard.clone() as BitSet
+        this.playerBoard = board.playerBoard.clone() as BitSet
+        this.opponentBoard = board.opponentBoard.clone() as BitSet
         if(activePoint!=null) {
             this.activePoint = Point(board.activePoint)
         }
+    }
+
+    fun reverseSides() : Board{
+        val reversedBoard = Board()
+        reversedBoard.opponentBoard = playerBoard
+        reversedBoard.playerBoard = opponentBoard
+        return reversedBoard
     }
 }
 

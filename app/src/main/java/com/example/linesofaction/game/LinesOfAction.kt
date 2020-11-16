@@ -27,9 +27,8 @@ object LinesOfAction {
     fun handleTouchedScreen(x: Int, y: Int) {
         if ((firstPlayerAsAI && playerTurn == paintFirstPlayer) || (secondPlayerAsAI && playerTurn == paintSecondPlayer)) return
         if (wonGameFlag == 0) {
-            val bitset = if (playerTurn == paintFirstPlayer) board.firstPlayerBoard else board.secondPlayerBoard
-            val enemyBitSet = if (playerTurn != paintFirstPlayer) board.firstPlayerBoard else board.secondPlayerBoard
-            val possibleTouchedPoint = if (BitSetInterface.getByXYBoard(x, y, bitset)) {
+            val tempBoard = if (playerTurn == paintFirstPlayer) board else board.reverseSides()
+            val possibleTouchedPoint = if (BitSetInterface.getByXYBoard(x, y, tempBoard.playerBoard)) {
                 Point(x, y)
             } else {
                 null
@@ -41,7 +40,7 @@ object LinesOfAction {
                 board.activePoint == null && possibleTouchedPoint == null -> return
                 board.activePoint != null && board.activePoint == possibleTouchedPoint -> board.activePoint = null
                 board.activePoint != null -> {
-                    val flag = BitSetInterface.movePiece(board.activePoint!!.x, board.activePoint!!.y, x, y, bitset, enemyBitSet)
+                    val flag = BitSetInterface.movePiece(board.activePoint!!.x, board.activePoint!!.y, x, y, tempBoard)
                     if (flag) {
                         markMovedPosition(board.activePoint!!, Point(x, y), board)
                         changeturn()
@@ -53,10 +52,14 @@ object LinesOfAction {
     }
 
     fun movePieceByAI(from: Point, to: Point) {
-        var flag = BitSetInterface.movePiece(from.x, from.y, to.x, to.y, board.firstPlayerBoard, board.secondPlayerBoard)
+        if(playerTurn== paintFirstPlayer)
+        {
+            BitSetInterface.movePiece(from.x, from.y, to.x, to.y, board)
+        } else {
+            BitSetInterface.movePiece(from.x, from.y, to.x, to.y, board.reverseSides())
+        }
         markMovedPosition(from, to, board)
         changeturn()
-        if (!flag) println("INVALID MOVE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     }
 
     private fun changeturn() {
@@ -71,9 +74,9 @@ object LinesOfAction {
     }
 
     private fun checkWonGame() : Int{
-        if (BitSetInterface.bfsToCountFormation(board.firstPlayerBoard) == board.firstPlayerBoard.cardinality()) {
+        if (BitSetInterface.bfsToCountFormation(board.playerBoard) == board.playerBoard.cardinality()) {
             return 1
-        } else if (BitSetInterface.bfsToCountFormation(board.secondPlayerBoard) == board.secondPlayerBoard.cardinality()) {
+        } else if (BitSetInterface.bfsToCountFormation(board.opponentBoard) == board.opponentBoard.cardinality()) {
             return 2
         }
         return 0
@@ -85,10 +88,10 @@ object LinesOfAction {
         playerTurn = paintFirstPlayer
         movesCounter = 1
         for (piece in (startLineCoord..endLineCoord)) {
-            BitSetInterface.setByXYBoard(piece, firstLineCoord, board.firstPlayerBoard)
-            BitSetInterface.setByXYBoard(piece, secondLineCoord, board.firstPlayerBoard)
-            BitSetInterface.setByXYBoard(firstLineCoord, piece, board.secondPlayerBoard)
-            BitSetInterface.setByXYBoard(secondLineCoord, piece, board.secondPlayerBoard)
+            BitSetInterface.setByXYBoard(piece, firstLineCoord, board.playerBoard)
+            BitSetInterface.setByXYBoard(piece, secondLineCoord, board.playerBoard)
+            BitSetInterface.setByXYBoard(firstLineCoord, piece, board.opponentBoard)
+            BitSetInterface.setByXYBoard(secondLineCoord, piece, board.opponentBoard)
         }
     }
 }

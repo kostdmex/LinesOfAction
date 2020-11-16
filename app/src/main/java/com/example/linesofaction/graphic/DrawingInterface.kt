@@ -68,15 +68,15 @@ class DrawingInterface {
             tempBoard = Board(board)
         }
         var index = 0
-        for (i in 0..tempBoard.firstPlayerBoard.cardinality()) {
-            index = tempBoard.firstPlayerBoard.nextSetBit(index)
+        for (i in 0..tempBoard.playerBoard.cardinality()) {
+            index = tempBoard.playerBoard.nextSetBit(index)
             val piece = BitSetInterface.fromIndexToPoint(index)
             canvas.drawCircle(piece.x * screenWidthDivByEight + centerX, piece.y * screenWidthDivByEight + centerX + startDrawingPoint, radiusX, LinesOfAction.paintFirstPlayer)
             index++
         }
         index = 0
-        for (i in 0..tempBoard.secondPlayerBoard.cardinality()) {
-            index = tempBoard.secondPlayerBoard.nextSetBit(index)
+        for (i in 0..tempBoard.opponentBoard.cardinality()) {
+            index = tempBoard.opponentBoard.nextSetBit(index)
             val piece = BitSetInterface.fromIndexToPoint(index)
             canvas.drawCircle(piece.x * screenWidthDivByEight + centerX, piece.y * screenWidthDivByEight + centerX + startDrawingPoint, radiusX, LinesOfAction.paintSecondPlayer)
             index++
@@ -88,10 +88,8 @@ class DrawingInterface {
             val point = board.activePoint
             lateinit var list : ArrayList<Point>
             synchronized(board) {
-                val friendlyBitSet = if(LinesOfAction.playerTurn==LinesOfAction.paintFirstPlayer) LinesOfAction.board.firstPlayerBoard else board.secondPlayerBoard
-                val enemyBitSet = if(LinesOfAction.playerTurn!=LinesOfAction.paintFirstPlayer) LinesOfAction.board.firstPlayerBoard else board.secondPlayerBoard
                 if (point != null) {
-                    list = BitSetInterface.getMovesFromXY(point.x, point.y, friendlyBitSet, enemyBitSet)
+                    list = BitSetInterface.getMovesFromXY(point.x, point.y, board)
                 }
             }
             val paint = Paint()
